@@ -21,6 +21,7 @@ package com.puppycrawl.tools.checkstyle.checks.javadoc;
 
 import static com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck.MSG_DUPLICATE_TAG;
 import static com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck.MSG_EXPECTED_TAG;
+import static com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck.MSG_INCORRECT_TAG_ORDER;
 import static com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck.MSG_INVALID_INHERIT_DOC;
 import static com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck.MSG_RETURN_EXPECTED;
 import static com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocMethodCheck.MSG_UNUSED_TAG;
@@ -579,6 +580,16 @@ public class JavadocMethodCheckTest extends AbstractModuleTestSupport {
         final DefaultConfiguration config = createModuleConfig(JavadocMethodCheck.class);
         verify(config, getPath("InputJavadocMethodLoadErrors.java"),
                 CommonUtil.EMPTY_STRING_ARRAY);
+    }
+
+    @Test
+    public void testWithIncorrectParamOrder() throws Exception {
+        final DefaultConfiguration config = createModuleConfig(JavadocMethodCheck.class);
+        final String[] expected = {
+            "13:8: " + getCheckMessage(MSG_INCORRECT_TAG_ORDER, "@param", "b"),
+            "14:8: " + getCheckMessage(MSG_INCORRECT_TAG_ORDER, "@param", "a"),
+        };
+        verify(config, getPath("InputJavadocMethodIncorrectParamOrder.java"), expected);
     }
 
 }

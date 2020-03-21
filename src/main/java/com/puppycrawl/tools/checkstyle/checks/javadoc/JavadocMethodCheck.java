@@ -236,6 +236,12 @@ public class JavadocMethodCheck extends AbstractCheck {
      */
     public static final String MSG_DUPLICATE_TAG = "javadoc.duplicateTag";
 
+    /**
+     * A key is pointing to the warning message text in "messages.properties"
+     * file.
+     */
+    public static final String MSG_INCORRECT_TAG_ORDER = "javadoc.incorrectTagOrder";
+
     /** Compiled regexp to match Javadoc tags that take an argument. */
     private static final Pattern MATCH_JAVADOC_ARG = CommonUtil.createPattern(
             "^\\s*(?>\\*|\\/\\*\\*)?\\s*@(throws|exception|param)\\s+(\\S+)\\s+\\S*");
@@ -252,6 +258,9 @@ public class JavadocMethodCheck extends AbstractCheck {
     private static final String END_JAVADOC = "*/";
     /** Multiline finished at next Javadoc. */
     private static final String NEXT_TAG = "@";
+
+    /** String literal for param tag as it used more than once. */
+    private static final String PARAM_TAG = "@param";
 
     /** Compiled regexp to match Javadoc tags with no argument. */
     private static final Pattern MATCH_JAVADOC_NOARG =
@@ -771,6 +780,13 @@ public class JavadocMethodCheck extends AbstractCheck {
         final List<DetailAST> params = getParameters(parent);
         final List<DetailAST> typeParams = CheckUtil
                 .getTypeParameters(parent);
+        // We need these 2 copy of the original lists to maintain the actual position
+        // of the param without deleting.
+        final List<DetailAST> allParams = new ArrayList<>(params);
+
+        // To store the actual position of the parameter, which will be
+        // later used for validating order of the params
+        int paramPosition = 0;
 
         // Loop over the tags, checking to see they exist in the params.
         final ListIterator<JavadocTag> tagIt = tags.listIterator();
@@ -785,17 +801,27 @@ public class JavadocMethodCheck extends AbstractCheck {
 
             final String arg1 = tag.getFirstArg();
             boolean found = removeMatchingParam(params, arg1);
+            final int actualPosition = indexOfParam(allParams, arg1);
 
-            if (CommonUtil.startsWithChar(arg1, '<') && CommonUtil.endsWithChar(arg1, '>')) {
+            final boolean isTypeParam = CommonUtil.startsWithChar(arg1, '<')
+                    && CommonUtil.endsWithChar(arg1, '>');
+            if (isTypeParam) {
                 found = searchMatchingTypeParameter(typeParams,
-                        arg1.substring(1, arg1.length() - 1));
+                    arg1.substring(1, arg1.length() - 1));
             }
 
             // Handle extra JavadocTag
             if (!found) {
                 log(tag.getLineNo(), tag.getColumnNo(), MSG_UNUSED_TAG,
-                        "@param", arg1);
+                        PARAM_TAG, arg1);
             }
+
+            // Handle incorrect JavadocTag order
+            if (found && !isTypeParam && paramPosition != actualPosition) {
+                log(tag.getLineNo(), tag.getColumnNo(), MSG_INCORRECT_TAG_ORDER,
+                        PARAM_TAG, arg1);
+            }
+            paramPosition++;
         }
 
         // Now dump out all type parameters/parameters without tags :- unless
@@ -838,6 +864,25 @@ public class JavadocMethodCheck extends AbstractCheck {
             }
         }
         return found;
+    }
+
+    /**
+     * Returns index of parameter from params collection by name.
+     * @param params collection of DetailAST parameters
+     * @param paramName name of parameter
+     * @return index of parameter if found else -1
+     */
+    private static int indexOfParam(List<DetailAST> params, String paramName) {
+        int paramIndex = -1;
+        int index = 0;
+        for (DetailAST param : params) {
+            if (param.getText().equals(paramName)) {
+                paramIndex = index;
+                break;
+            }
+            index++;
+        }
+        return paramIndex;
     }
 
     /**

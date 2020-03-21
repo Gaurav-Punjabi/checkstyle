@@ -62,9 +62,6 @@ import com.puppycrawl.tools.checkstyle.utils.FilterUtil;
  * EmptyLineSeparator
  * </li>
  * <li>
- * IllegalCatch
- * </li>
- * <li>
  * Indentation
  * </li>
  * <li>
@@ -72,9 +69,6 @@ import com.puppycrawl.tools.checkstyle.utils.FilterUtil;
  * </li>
  * <li>
  * InterfaceMemberImpliedModifier
- * </li>
- * <li>
- * InvalidJavadocPosition
  * </li>
  * <li>
  * JavadocContentLocation
