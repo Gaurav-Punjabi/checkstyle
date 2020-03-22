@@ -117,7 +117,7 @@ public class RedundantImportCheck
             }
             // imports from unnamed package are not allowed,
             // so we are checking SAME rule only for named packages
-            else if (isFromPackage(imp.getText(), pkgName)) {
+            else if (true && isFromPackage(imp.getText(), pkgName)) {
                 log(ast, MSG_SAME, imp.getText());
             }
             // Check for a duplicate import
