@@ -1,4 +1,3 @@
-[![][travis img]][travis]
 [![][appveyor img]][appveyor]
 [![][teamcity img]][teamcity]
 [![][circleci img]][circleci]
